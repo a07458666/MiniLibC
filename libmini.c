@@ -251,33 +251,28 @@ unsigned int alarm(unsigned int seconds) {
 	return sys_alarm(seconds);
 }
 
-void __myrt(void)
-{
-	sys_rt_sigreturn(0);
-}
-
-long sigaction(int signum, struct sigaction *nact, struct sigaction *oact) {
-	long ret;
-	nact->sa_flags |= SA_NODEFER;
-	nact->sa_restorer = __myrt;
-	ret = sys_rt_sigaction(signum, nact, oact, sizeof(sigset_t));
-	return ret;
-}
-
 int sigemptyset(sigset_t *set)
 {
+	// set->sig[0] = 0;
+	// if (sizeof(unsigned long)==4 || _NSIG > 65) set->sig[1] = 0;
+	// if (sizeof(unsigned long)==4 && _NSIG > 65) {
+	// 	set->sig[2] = 0;
+	// 	set->sig[3] = 0;
+	// }
 	*set = 0;
 	return 0;
 }
 
 int sigaddset (sigset_t *set, int sig)
 {
+	// set->sig[0] |= 1 << (sig - 1);
 	*set |= 1 << (sig - 1);
 	return 0;
 }
 
 int sigdelset (sigset_t *set, int sig)
 {
+	// set->sig[0] &= ~(1 << (sig - 1));
 	*set &= ~(1 << (sig - 1));
 	return 0;
 }
@@ -298,14 +293,30 @@ int sigpending(sigset_t *set)
 
 int sigismember(const sigset_t *set, int sig)
 {
+	// int isMem = set->sig[0] & (1 << (sig - 1));
 	int isMem = *set & (1 << (sig - 1));
 	if (isMem != 0) return 1;
 	return 0;
 }
 
+long sigaction(int signum, struct sigaction *nact, struct sigaction *oact) {
+	struct sigaction_s new_sa = {}, old_sa = {};
+	
+	new_sa.sa.sa_handler = nact->sa_handler;
+	new_sa.sa.sa_flags = nact->sa_flags |= SA_RESTORER;
+	new_sa.sa.sa_restorer = sys_rt_sigreturn;
+	long ret = sys_rt_sigaction(signum, &new_sa, &old_sa, sizeof(sigset_t));
+
+	oact->sa_handler = old_sa.sa.sa_handler;
+	oact->sa_flags = old_sa.sa.sa_flags;
+	oact->sa_restorer = old_sa.sa.sa_restorer;
+	oact->sa_mask = old_sa.sa.sa_mask;
+	WRAPPER_RETval(long);
+}
+
 sighandler_t signal(int signum, sighandler_t handler)
 {
-	struct sigaction act, oact;
+	struct sigaction act={}, oact={};
 	act.sa_handler = handler;
 	sigemptyset(&act.sa_mask);
 	act.sa_flags = 0;

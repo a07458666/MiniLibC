@@ -1,6 +1,7 @@
 #include "libmini.h"
 
 void handler(int s) { /* do nothing */
+	write(1, "handler\n", strlen("handler\n"));
 }
 
 int main() {

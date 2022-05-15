@@ -1,6 +1,10 @@
 #ifndef __LIBMINI_H__
 #define __LIBMINI_H__		/* avoid reentrant */
 
+// #define _NSIG		64
+// #define _NSIG_BPW	64
+// #define _NSIG_WORDS	(_NSIG / _NSIG_BPW)
+
 typedef long long size_t;
 typedef long long ssize_t;
 typedef long long off_t;
@@ -9,11 +13,11 @@ typedef int uid_t;
 typedef int gid_t;
 typedef int pid_t;
 
-typedef void (*sighandler_t)(int);
-typedef void (*sa_sigaction_t)(void);
-typedef void (*sa_restorer_t)(void);
+// typedef struct {
+// 	unsigned long sig[_NSIG_WORDS];
+// } sigset_t;
+typedef long sigset_t;
 
-typedef unsigned long sigset_t;
 typedef struct jmp_buf_s {
 	long long reg[8];
 	sigset_t mask;
@@ -152,6 +156,7 @@ extern long errno;
 # define SA_NODEFER   0x40000000 /* Don't automatically block the signal when
 				    its handler is being executed.  */
 # define SA_RESETHAND 0x80000000 /* Reset to SIG_DFL on entry to handler.  */
+# define SA_RESTORER  0x04000000
 
 #define	SIG_BLOCK     0		 /* Block signals.  */
 #define	SIG_UNBLOCK   1		 /* Unblock signals.  */
@@ -167,7 +172,6 @@ struct timespec {
 	long	tv_sec;		/* seconds */
 	long	tv_nsec;	/* nanoseconds */
 };
-
 struct timeval {
 	long	tv_sec;		/* seconds */
 	long	tv_usec;	/* microseconds */
@@ -178,13 +182,23 @@ struct timezone {
 	int	tz_dsttime;	/* type of DST correction */
 };
 
+typedef void (*sighandler_t)(int);
+// typedef void (*sa_sigaction_t)(int);
+typedef void (*sa_restorer_t)(void);
+
 struct sigaction {
 	sighandler_t sa_handler;
-	sa_sigaction_t sa_sigaction;
-	sigset_t   sa_mask;
-	int        sa_flags;
+	// sa_sigaction_t sa_sigaction;
+	unsigned int  sa_flags;
 	sa_restorer_t sa_restorer;
+	sigset_t   sa_mask;
 };
+
+struct sigaction_s
+{
+	struct sigaction sa;
+};
+
 
 /* system calls */
 long sys_read(int fd, char *buf, size_t count);

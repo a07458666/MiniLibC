@@ -7,7 +7,7 @@ ASM64	= yasm -f elf64 -DYASM -D__x86_64__ -DPIC
 CFLAGS	= -g -Wall -masm=intel -fno-stack-protector
 CFLAGS_TEST	= -c -g -Wall -fno-stack-protector -nostdlib -I. -I.. -DUSEMINI
 
-PROGS = libmini64.a libmini.so start.o sleep1.o write1.o alarm1.o alarm2.o
+PROGS = libmini64.a libmini.so start.o sleep1.o write1.o alarm1.o alarm2.o alarm3.o
 
 all: $(PROGS)
 
