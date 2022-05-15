@@ -194,12 +194,6 @@ struct sigaction {
 	sigset_t   sa_mask;
 };
 
-struct sigaction_s
-{
-	struct sigaction sa;
-};
-
-
 /* system calls */
 long sys_read(int fd, char *buf, size_t count);
 long sys_write(int fd, const void *buf, size_t count);
@@ -286,7 +280,7 @@ int sigismember(const sigset_t *set, int sig);
 int sigaddset (sigset_t *set, int sig);
 int sigdelset (sigset_t *set, int sig);
 int sigemptyset(sigset_t *set);
-// int sigfillset(sigset_t *set);
+int sigfillset(sigset_t *set);
 int sigpending(sigset_t *set);
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 sighandler_t signal(int signum, sighandler_t handler);

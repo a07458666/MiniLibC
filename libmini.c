@@ -263,6 +263,12 @@ int sigemptyset(sigset_t *set)
 	return 0;
 }
 
+int sigfillset(sigset_t *set)
+{
+	*set = ~0;
+	return 0;
+}
+
 int sigaddset (sigset_t *set, int sig)
 {
 	// set->sig[0] |= 1 << (sig - 1);
@@ -300,17 +306,12 @@ int sigismember(const sigset_t *set, int sig)
 }
 
 long sigaction(int signum, struct sigaction *nact, struct sigaction *oact) {
-	struct sigaction_s new_sa = {}, old_sa = {};
-	
-	new_sa.sa.sa_handler = nact->sa_handler;
-	new_sa.sa.sa_flags = nact->sa_flags |= SA_RESTORER;
-	new_sa.sa.sa_restorer = sys_rt_sigreturn;
-	long ret = sys_rt_sigaction(signum, &new_sa, &old_sa, sizeof(sigset_t));
+	struct sigaction new_sa = {};
+	new_sa.sa_handler = nact->sa_handler;
+	new_sa.sa_flags = nact->sa_flags |= SA_RESTORER;
+	new_sa.sa_restorer = sys_rt_sigreturn;
+	long ret = sys_rt_sigaction(signum, &new_sa, oact, sizeof(sigset_t));
 
-	oact->sa_handler = old_sa.sa.sa_handler;
-	oact->sa_flags = old_sa.sa.sa_flags;
-	oact->sa_restorer = old_sa.sa.sa_restorer;
-	oact->sa_mask = old_sa.sa.sa_mask;
 	WRAPPER_RETval(long);
 }
 
