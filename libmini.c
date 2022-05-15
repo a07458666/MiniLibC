@@ -246,3 +246,52 @@ unsigned int sleep(unsigned int seconds) {
 	return 0;
 }
 #endif
+
+unsigned int alarm(unsigned int seconds) {
+	return sys_alarm(seconds);
+}
+
+void __myrt(void)
+{
+	long ret = sys_rt_sigreturn(0);
+}
+
+long sigaction(int signum, struct sigaction *nact, struct sigaction *oact) {
+	long ret;
+	nact->sa_flags |= SA_NODEFER;
+	nact->sa_restorer = __myrt;
+	ret = sys_rt_sigaction(signum, nact, oact, sizeof(sigset_t));
+	return ret;
+}
+
+int sigemptyset(sigset_t *set)
+{
+	set->sig[0] = 0;
+	if (sizeof(long)==4 || _NSIG > 65) set->sig[1] = 0;
+	if (sizeof(long)==4 && _NSIG > 65) {
+		set->sig[2] = 0;
+		set->sig[3] = 0;
+	}
+	return 0;
+}
+
+
+sighandler_t signal(int signum, sighandler_t handler)
+{
+	struct sigaction act, oact;
+	act.sa_handler = handler;
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = 0;
+	if (signum == SIGALRM) {
+		act.sa_flags |= SA_INTERRUPT;
+	}
+	else
+	{
+		act.sa_flags |= SA_RESTART;
+	}
+	if (sigaction(signum, &act, &oact) < 0)
+	{
+		return SIG_ERR;
+	}
+	return (oact.sa_handler);
+}

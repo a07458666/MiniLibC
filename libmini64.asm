@@ -25,11 +25,14 @@ extern	errno
 	gensys   9, mmap
 	gensys  10, mprotect
 	gensys  11, munmap
+	gensys  13, rt_sigaction
+	gensys  15, rt_sigreturn
 	gensys  22, pipe
 	gensys  32, dup
 	gensys  33, dup2
 	gensys  34, pause
 	gensys  35, nanosleep
+	gensys  37, alarm
 	gensys  57, fork
 	gensys  60, exit
 	gensys  79, getcwd

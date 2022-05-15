@@ -1,6 +1,10 @@
 #ifndef __LIBMINI_H__
 #define __LIBMINI_H__		/* avoid reentrant */
 
+#define _NSIG		64
+#define _NSIG_BPW	64
+#define _NSIG_WORDS	(_NSIG / _NSIG_BPW)
+
 typedef long long size_t;
 typedef long long ssize_t;
 typedef long long off_t;
@@ -8,6 +12,19 @@ typedef int mode_t;
 typedef int uid_t;
 typedef int gid_t;
 typedef int pid_t;
+
+typedef void (*sighandler_t)(int);
+typedef void (*sa_sigaction_t)(void);
+typedef void (*sa_restorer_t)(void);
+
+typedef struct {
+	unsigned long sig[_NSIG_WORDS];
+} sigset_t;
+
+typedef struct jmp_buf_s {
+	long long reg[8];
+	sigset_t mask;
+} jmp_buf[1];
 
 extern long errno;
 
@@ -135,6 +152,7 @@ extern long errno;
 #define SA_NOCLDWAIT  2		 /* Don't create zombie on child death.  */
 #define SA_SIGINFO    4		 /* Invoke signal-catching function with
 				    three arguments instead of one.  */
+
 # define SA_ONSTACK   0x08000000 /* Use signal stack by using `sa_restorer'. */
 # define SA_RESTART   0x10000000 /* Restart syscall on signal return.  */
 # define SA_INTERRUPT 0x20000000 /* Historical no-op.  */
@@ -145,6 +163,12 @@ extern long errno;
 #define	SIG_BLOCK     0		 /* Block signals.  */
 #define	SIG_UNBLOCK   1		 /* Unblock signals.  */
 #define	SIG_SETMASK   2		 /* Set the set of blocked signals.  */
+
+#define SIG_ERR (void (*)())-1
+
+#define SIG_DFL (void (*)())0
+
+#define SIG_IGN (void (*)())1
 
 struct timespec {
 	long	tv_sec;		/* seconds */
@@ -159,6 +183,14 @@ struct timeval {
 struct timezone {
 	int	tz_minuteswest;	/* minutes west of Greenwich */
 	int	tz_dsttime;	/* type of DST correction */
+};
+
+struct sigaction {
+	sighandler_t sa_handler;
+	sa_sigaction_t sa_sigaction;
+	sigset_t   sa_mask;
+	int        sa_flags;
+	sa_restorer_t sa_restorer;
 };
 
 /* system calls */
@@ -195,6 +227,10 @@ long sys_setuid(uid_t uid);
 long sys_setgid(gid_t gid);
 long sys_geteuid();
 long sys_getegid();
+long sys_alarm(unsigned int sec);
+// long sys_rt_sigaction(int sig, const struct sigaction *act, struct sigaction *oact,size_t sigsetsize);
+long sys_rt_sigaction(int sig, const struct sigaction * act, struct sigaction  * oact, size_t sigsetsize);
+long sys_rt_sigreturn(unsigned long __unused);
 
 /* wrappers */
 ssize_t	read(int fd, char *buf, size_t count);
@@ -236,4 +272,20 @@ size_t strlen(const char *s);
 void perror(const char *prefix);
 unsigned int sleep(unsigned int s);
 
+void __myrt(void);
+long sigaction(int signum, struct sigaction *nact, struct sigaction *oact);
+// int sigismember(const sigset_t *set, int sig);
+// int sigaddset (sigset_t *set, int sig);
+// int sigdelset (sigset_t *set, int sig);
+int sigemptyset(sigset_t *set);
+// int sigfillset(sigset_t *set);
+// int sigpending(sigset_t *set);
+// int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+sighandler_t signal(int signum, sighandler_t handler);
+// int setjmp(jmp_buf env);
+// void longjmp(jmp_buf env, int val);
+unsigned int alarm(unsigned int sec);
+
+
 #endif	/* __LIBMINI_H__ */
+
