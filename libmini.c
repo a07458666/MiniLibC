@@ -253,7 +253,7 @@ unsigned int alarm(unsigned int seconds) {
 
 void __myrt(void)
 {
-	long ret = sys_rt_sigreturn(0);
+	sys_rt_sigreturn(0);
 }
 
 long sigaction(int signum, struct sigaction *nact, struct sigaction *oact) {
@@ -266,15 +266,42 @@ long sigaction(int signum, struct sigaction *nact, struct sigaction *oact) {
 
 int sigemptyset(sigset_t *set)
 {
-	set->sig[0] = 0;
-	if (sizeof(long)==4 || _NSIG > 65) set->sig[1] = 0;
-	if (sizeof(long)==4 && _NSIG > 65) {
-		set->sig[2] = 0;
-		set->sig[3] = 0;
-	}
+	*set = 0;
 	return 0;
 }
 
+int sigaddset (sigset_t *set, int sig)
+{
+	*set |= 1 << (sig - 1);
+	return 0;
+}
+
+int sigdelset (sigset_t *set, int sig)
+{
+	*set &= ~(1 << (sig - 1));
+	return 0;
+}
+
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset)
+{
+	long ret;
+	ret = sys_rt_sigprocmask(how, set, oldset, sizeof(sigset_t));
+	WRAPPER_RETval(long);
+}
+
+int sigpending(sigset_t *set)
+{
+	long ret;
+	ret = sys_rt_sigpending(set, sizeof(sigset_t));
+	WRAPPER_RETval(long);
+}
+
+int sigismember(const sigset_t *set, int sig)
+{
+	int isMem = *set & (1 << (sig - 1));
+	if (isMem != 0) return 1;
+	return 0;
+}
 
 sighandler_t signal(int signum, sighandler_t handler)
 {

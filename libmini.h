@@ -1,10 +1,6 @@
 #ifndef __LIBMINI_H__
 #define __LIBMINI_H__		/* avoid reentrant */
 
-#define _NSIG		64
-#define _NSIG_BPW	64
-#define _NSIG_WORDS	(_NSIG / _NSIG_BPW)
-
 typedef long long size_t;
 typedef long long ssize_t;
 typedef long long off_t;
@@ -17,10 +13,7 @@ typedef void (*sighandler_t)(int);
 typedef void (*sa_sigaction_t)(void);
 typedef void (*sa_restorer_t)(void);
 
-typedef struct {
-	unsigned long sig[_NSIG_WORDS];
-} sigset_t;
-
+typedef unsigned long sigset_t;
 typedef struct jmp_buf_s {
 	long long reg[8];
 	sigset_t mask;
@@ -228,9 +221,10 @@ long sys_setgid(gid_t gid);
 long sys_geteuid();
 long sys_getegid();
 long sys_alarm(unsigned int sec);
-// long sys_rt_sigaction(int sig, const struct sigaction *act, struct sigaction *oact,size_t sigsetsize);
 long sys_rt_sigaction(int sig, const struct sigaction * act, struct sigaction  * oact, size_t sigsetsize);
+long sys_rt_sigprocmask(int how, const sigset_t *nset, sigset_t *oset, size_t sigsetsize);
 long sys_rt_sigreturn(unsigned long __unused);
+long sys_rt_sigpending(sigset_t *set, size_t sigsetsize);
 
 /* wrappers */
 ssize_t	read(int fd, char *buf, size_t count);
@@ -274,13 +268,13 @@ unsigned int sleep(unsigned int s);
 
 void __myrt(void);
 long sigaction(int signum, struct sigaction *nact, struct sigaction *oact);
-// int sigismember(const sigset_t *set, int sig);
-// int sigaddset (sigset_t *set, int sig);
-// int sigdelset (sigset_t *set, int sig);
+int sigismember(const sigset_t *set, int sig);
+int sigaddset (sigset_t *set, int sig);
+int sigdelset (sigset_t *set, int sig);
 int sigemptyset(sigset_t *set);
 // int sigfillset(sigset_t *set);
-// int sigpending(sigset_t *set);
-// int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
+int sigpending(sigset_t *set);
+int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 sighandler_t signal(int signum, sighandler_t handler);
 // int setjmp(jmp_buf env);
 // void longjmp(jmp_buf env, int val);

@@ -26,6 +26,7 @@ extern	errno
 	gensys  10, mprotect
 	gensys  11, munmap
 	gensys  13, rt_sigaction
+	gensys  14, rt_sigprocmask
 	gensys  15, rt_sigreturn
 	gensys  22, pipe
 	gensys  32, dup
@@ -54,6 +55,7 @@ extern	errno
 	gensys 106, setgid
 	gensys 107, geteuid
 	gensys 108, getegid
+	gensys 127, rt_sigpending
 
 	global open:function
 open:
