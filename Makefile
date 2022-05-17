@@ -9,7 +9,7 @@ CFLAGS_TEST	= -c -g -Wall -fno-stack-protector -nostdlib -I. -I.. -DUSEMINI
 
 PROGS = libmini64.a libmini.so start.o 
 TASK_CASE = sleep1 write1 alarm1 alarm2 alarm3 jmp1 jmp2
-all: $(PROGS) $(TASK_CASE)
+all: $(PROGS) #$(TASK_CASE)
 
 %.o: %.asm
 	$(ASM64) $< -o $@
