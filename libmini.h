@@ -274,7 +274,6 @@ size_t strlen(const char *s);
 void perror(const char *prefix);
 unsigned int sleep(unsigned int s);
 
-void __myrt(void);
 long sigaction(int signum, struct sigaction *nact, struct sigaction *oact);
 int sigismember(const sigset_t *set, int sig);
 int sigaddset (sigset_t *set, int sig);
@@ -284,8 +283,8 @@ int sigfillset(sigset_t *set);
 int sigpending(sigset_t *set);
 int sigprocmask(int how, const sigset_t *set, sigset_t *oldset);
 sighandler_t signal(int signum, sighandler_t handler);
-// int setjmp(jmp_buf env);
-// void longjmp(jmp_buf env, int val);
+int setjmp(jmp_buf env);
+void longjmp(jmp_buf env, int val);
 unsigned int alarm(unsigned int sec);
 
 

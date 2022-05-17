@@ -109,3 +109,71 @@ sleep_quit:
 sys_rt_sigreturn:
 	mov rax, 15
 	syscall
+
+	global setjmp: function
+setjmp:
+	; rdi : jmp_buf env
+	; save register
+	mov QWORD [rdi + 0],  rbx ; save rbx to env[0]
+	mov QWORD [rdi + 8],  rsp ; save rsp to env[1]
+	mov QWORD [rdi + 16], rbp ; save rbp to env[2]
+	mov QWORD [rdi + 24], r12 ; save r12 to env[3]
+	mov QWORD [rdi + 32], r13 ; save r13 to env[4]
+	mov QWORD [rdi + 40], r14 ; save r14 to env[5]
+	mov QWORD [rdi + 48], r15 ; save r15 to env[6]
+	mov rax, [rsp]            ; load return address to rax
+	mov QWORD [rdi + 56], rax ; save rsp to env[7]
+	
+	; backup env
+	push rdi   					; backup rdi (jmp_buf env)
+	push rax					; allocate 8 byte
+	
+	; save sig mask 
+	; sys_rt_sigprocmask(int how, const sigset_t *nset, sigset_t *oset, size_t sigsetsize);
+	mov rdi, 0					; how = SIG_BLOCK = 0
+	mov rsi, 0					; sigset_t nset = NULL
+	mov rdx, rsp				; sigset_t oset save to rsp (Stack top)
+	mov rcx, 8					; size_t sigsetsize long = 8
+	call sys_rt_sigprocmask
+
+	pop rax						; release stack 8 byte
+	pop rdi						; 
+	mov QWORD [rdi + 64], rsp	; from stack top (mask) to jmp_buf_s.mask
+
+	mov rax, 0				  	; set reutn 0
+	ret
+
+	global longjmp: function
+longjmp:
+	; rdi : jmp_buf env
+	; rsi : int val (return value)
+	
+	mov rdx, [rdi + 64]			; set rdx = env.mask
+	push rdi					; backup rdi (env)
+	push rsi					; backup rsi (val)
+
+	; set sig mask 
+	; sys_rt_sigprocmask(int how, const sigset_t *nset, sigset_t *oset, size_t sigsetsize);
+	mov rdi, 2					; how = SIG_SETMASK = 2
+	mov QWORD rsi, rdx 			; sigset_t nset = env.mask
+	mov rdx, 0					; sigset_t oset = NULL
+	mov rcx, 8					; size_t sigsetsize long = 8 byte
+	call sys_rt_sigprocmask
+
+	pop rsi						; restore env
+	pop rdi						; restore val
+
+	; load register
+	mov QWORD rbx, [rdi + 0]
+	mov QWORD rsp, [rdi + 8]
+	mov QWORD rbp, [rdi + 16]
+	mov QWORD r12, [rdi + 24]
+	mov QWORD r13, [rdi + 32]
+	mov QWORD r14, [rdi + 40]
+	mov QWORD r15, [rdi + 48]
+	mov QWORD rdx, [rdi + 56]
+	
+	mov     [rsp], rdx 		 ; set address to rsp
+	mov       rax, rsi       ; return val(int)
+
+	ret
