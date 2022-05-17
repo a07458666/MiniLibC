@@ -143,6 +143,8 @@ extern long errno;
 #define SIGWINCH	28
 #define SIGIO		29
 #define SIGPOLL		SIGIO
+#define SIGPWR		30
+#define SIGSYS		31
 
 /* from /usr/include/x86_64-linux-gnu/bits/sigaction.h */
 #define	SA_NOCLDSTOP  1		 /* Don't send SIGCHLD when children stop.  */
@@ -274,7 +276,7 @@ size_t strlen(const char *s);
 void perror(const char *prefix);
 unsigned int sleep(unsigned int s);
 
-long sigaction(int signum, struct sigaction *nact, struct sigaction *oact);
+int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
 int sigismember(const sigset_t *set, int sig);
 int sigaddset (sigset_t *set, int sig);
 int sigdelset (sigset_t *set, int sig);
@@ -286,7 +288,6 @@ sighandler_t signal(int signum, sighandler_t handler);
 int setjmp(jmp_buf env);
 void longjmp(jmp_buf env, int val);
 unsigned int alarm(unsigned int sec);
-
 
 #endif	/* __LIBMINI_H__ */
 

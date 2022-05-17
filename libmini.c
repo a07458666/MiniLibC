@@ -253,12 +253,6 @@ unsigned int alarm(unsigned int seconds) {
 
 int sigemptyset(sigset_t *set)
 {
-	// set->sig[0] = 0;
-	// if (sizeof(unsigned long)==4 || _NSIG > 65) set->sig[1] = 0;
-	// if (sizeof(unsigned long)==4 && _NSIG > 65) {
-	// 	set->sig[2] = 0;
-	// 	set->sig[3] = 0;
-	// }
 	*set = 0;
 	return 0;
 }
@@ -271,14 +265,12 @@ int sigfillset(sigset_t *set)
 
 int sigaddset (sigset_t *set, int sig)
 {
-	// set->sig[0] |= 1 << (sig - 1);
 	*set |= 1 << (sig - 1);
 	return 0;
 }
 
 int sigdelset (sigset_t *set, int sig)
 {
-	// set->sig[0] &= ~(1 << (sig - 1));
 	*set &= ~(1 << (sig - 1));
 	return 0;
 }
@@ -299,20 +291,19 @@ int sigpending(sigset_t *set)
 
 int sigismember(const sigset_t *set, int sig)
 {
-	// int isMem = set->sig[0] & (1 << (sig - 1));
 	int isMem = *set & (1 << (sig - 1));
 	if (isMem != 0) return 1;
 	return 0;
 }
 
-long sigaction(int signum, struct sigaction *nact, struct sigaction *oact) {
+int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact){
 	struct sigaction new_sa = {};
-	new_sa.sa_handler = nact->sa_handler;
-	new_sa.sa_flags = nact->sa_flags |= SA_RESTORER;
+	new_sa.sa_handler = act->sa_handler;
+	new_sa.sa_flags = act->sa_flags;
+	new_sa.sa_flags |= SA_RESTORER;
 	new_sa.sa_restorer = sys_rt_sigreturn;
-	long ret = sys_rt_sigaction(signum, &new_sa, oact, sizeof(sigset_t));
-
-	WRAPPER_RETval(long);
+	long ret = sys_rt_sigaction(signum, &new_sa, oldact, sizeof(sigset_t));
+	WRAPPER_RETval(int);
 }
 
 sighandler_t signal(int signum, sighandler_t handler)

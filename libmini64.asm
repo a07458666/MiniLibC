@@ -131,13 +131,13 @@ setjmp:
 	; save sig mask 
 	; sys_rt_sigprocmask(int how, const sigset_t *nset, sigset_t *oset, size_t sigsetsize);
 	mov rdi, 0					; how = SIG_BLOCK = 0
-	mov rsi, 0					; sigset_t nset = NULL
-	mov rdx, rsp				; sigset_t oset save to rsp (Stack top)
-	mov rcx, 8					; size_t sigsetsize long = 8
+	mov rsi, 0					; nset = NULL
+	mov rdx, rsp				; oset = save to rsp (Stack top)
+	mov rcx, 8					; sigsetsize long = 8
 	call sys_rt_sigprocmask
 
 	pop rax						; release stack 8 byte
-	pop rdi						; 
+	pop rdi						; restore env
 	mov QWORD [rdi + 64], rsp	; from stack top (mask) to jmp_buf_s.mask
 
 	mov rax, 0				  	; set reutn 0
@@ -148,16 +148,16 @@ longjmp:
 	; rdi : jmp_buf env
 	; rsi : int val (return value)
 	
-	mov rdx, [rdi + 64]			; set rdx = env.mask
+	mov  rdx, [rdi + 64]		; set rdx = env.mask
 	push rdi					; backup rdi (env)
 	push rsi					; backup rsi (val)
 
 	; set sig mask 
 	; sys_rt_sigprocmask(int how, const sigset_t *nset, sigset_t *oset, size_t sigsetsize);
-	mov rdi, 2					; how = SIG_SETMASK = 2
-	mov QWORD rsi, rdx 			; sigset_t nset = env.mask
-	mov rdx, 0					; sigset_t oset = NULL
-	mov rcx, 8					; size_t sigsetsize long = 8 byte
+	mov rdi, 2					; how : SIG_SETMASK = 2
+	mov QWORD rsi, rdx 			; nset = env.mask
+	mov rdx, 0					; oset = NULL
+	mov rcx, 8					; sigsetsize long = 8 byte
 	call sys_rt_sigprocmask
 
 	pop rsi						; restore env
