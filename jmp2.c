@@ -17,17 +17,17 @@ int main() {
 	
 	if(setjmp(jb) != 0) {
 		i++;
-		write(1, "b\n", strlen("b\n"));
 	}
 	if (i == 0)
 	{
+		write(1, "block alrm\n", strlen("block alrm\n"));
 		sigset_t s;
 		sigemptyset(&s);
 		sigaddset(&s, SIGALRM);
 		sigprocmask(SIG_BLOCK, &s, NULL);
-		write(1, "SIG_BLOCK\n", strlen("SIG_BLOCK\n"));
 	}	
 	if(i < 2) funs[i]();
+	write(1, "Bingo\n", strlen("Bingo\n"));
 	pause();
 	return 0;
 }
